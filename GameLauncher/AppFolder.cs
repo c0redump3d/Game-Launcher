@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace GameLauncher
 {
@@ -13,10 +7,7 @@ namespace GameLauncher
     {
         /*
          * 
-         * The purpose of this class is to create a text file telling us that
-         * this application has been opened before. This is here for the tutorial
-         * form. So, on first start up of this application, it will show the tutorial
-         * form, otherwise it won't.
+         * create proper files/folders for launcher
          * 
          */
 
@@ -24,8 +15,6 @@ namespace GameLauncher
 
         public void createFile()// create file if neccessary, called on startup
         {
-            if (File.Exists(appData + @"\GameLauncher\settings.txt")) // don't want to create a file that already exists
-                return;
 
             if (!Directory.Exists(appData + @"\GameLauncher\")) //same thing, dont want to create directory that already exists
                 Directory.CreateDirectory(appData + @"\GameLauncher\");
@@ -38,6 +27,10 @@ namespace GameLauncher
 
             if (!Directory.Exists(appData + @"\GameLauncher\TetrisGame\")) //same thing, dont want to create directory that already exists
                 Directory.CreateDirectory(appData + @"\GameLauncher\TetrisGame\");
+
+
+            if (File.Exists(appData + @"\GameLauncher\settings.txt")) // don't want to create a file that already exists
+                return;
 
             var settingsTXT = File.Create(appData + @"\GameLauncher\settings.txt");
 

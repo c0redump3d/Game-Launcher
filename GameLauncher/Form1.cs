@@ -17,6 +17,9 @@ namespace GameLauncher
         string snakeGameVersion;
         string paintAppVersion;
         string tetrisGameVersion;
+        bool tetrisOutOfDate = false;
+        bool paintOutOfDate = false;
+        bool snakeOutOfDate = false;
         //595, 510
         //825, 510
 
@@ -42,6 +45,36 @@ namespace GameLauncher
             tetrisGameVersion = Encoding.UTF8.GetString(tetrisData).Replace("\0", "").Remove(8);
             snakeGameVersion = Encoding.UTF8.GetString(snakeData).Replace("\0", "").Remove(9);
 
+            if (File.Exists(appData + @"\GameLauncher\TetrisGame\version.txt"))
+            {
+                StreamReader sr = new StreamReader(appData + @"\GameLauncher\TetrisGame\version.txt");
+                string version = sr.ReadToEnd();
+                if (version != tetrisGameVersion)
+                {
+                    tetrisOutOfDate = true;
+                }
+            }
+
+            if (File.Exists(appData + @"\GameLauncher\PaintApp\version.txt"))
+            {
+                StreamReader sr = new StreamReader(appData + @"\GameLauncher\PaintApp\version.txt");
+                string version = sr.ReadToEnd();
+                if (version != paintAppVersion)
+                {
+                    paintOutOfDate = true;
+                }
+            }
+
+            if (File.Exists(appData + @"\GameLauncher\SnakeGame\version.txt"))
+            {
+                StreamReader sr = new StreamReader(appData + @"\GameLauncher\SnakeGame\version.txt");
+                string version = sr.ReadToEnd();
+                if (version != snakeGameVersion)
+                {
+                    snakeOutOfDate = true;
+                }
+            }
+
             updateLog.BackColor = this.BackColor;
         }
 
@@ -50,7 +83,7 @@ namespace GameLauncher
             selectedTab = 1; // tetris
             updateLog.Text = "Update Logs(" + tetrisGameVersion + "):\r\n" + Encoding.UTF8.GetString(webc.DownloadData("https://raw.githubusercontent.com/StrugglingDoge/TetrisGame/master/updatelogs")).Replace(@"\\n", "\r\n");
 
-            if (File.Exists(appData + @"\GameLauncher\TetrisGame\TetrisGame.exe"))
+            if (File.Exists(appData + @"\GameLauncher\TetrisGame\TetrisGame.exe") && !tetrisOutOfDate)
             {
                 if (downloadGameButton.Text != "Play")
                 {
@@ -62,7 +95,10 @@ namespace GameLauncher
             {
                 if (downloadGameButton.Text == "Play")
                     downloadGameButton.Left -= 20;
-                downloadGameButton.Text = "Download";
+                if (tetrisOutOfDate)
+                    downloadGameButton.Text = "Update";
+                else
+                    downloadGameButton.Text = "Download";
             }
             gameNameLabel.Text = "Tetris";
             inGamePicture.Image = Properties.Resources.tetrisGameplay;
@@ -110,16 +146,26 @@ namespace GameLauncher
         {
             if (selectedTab == 1)
             {
-                if (downloadGameButton.Text == "Download")
+                if (downloadGameButton.Text == "Download" || downloadGameButton.Text == "Update")
                 {
                     using (WebClient wc = new WebClient())
                     {
                         downloadGameButton.Enabled = false;
                         wc.DownloadFile("https://github.com/StrugglingDoge/TetrisGame/releases/download/" + tetrisGameVersion + "/TetrisGame.exe", appData + @"\GameLauncher\TetrisGame\TetrisGame.exe");
                         wc.DownloadFile("https://github.com/StrugglingDoge/TetrisGame/releases/download/" + tetrisGameVersion + "/TetrisGame.exe.config", appData + @"\GameLauncher\TetrisGame\TetrisGame.exe.config");
+                        if (!File.Exists(appData + @"\GameLauncher\TetrisGame\version.txt"))
+                        {
+                            var file = File.Create(appData + @"\GameLauncher\TetrisGame\version.txt");
+                            file.Close();
+                        }
+
+                        StreamWriter sw = new StreamWriter(appData + @"\GameLauncher\TetrisGame\version.txt");
+                        sw.Write("" + tetrisGameVersion);
+                        sw.Close();
                         MessageBox.Show("Done.");
                         downloadGameButton.Text = "Play";
                         downloadGameButton.Left += 20;
+                        tetrisOutOfDate = false;
                         downloadGameButton.Enabled = true;
                     }
                 }
@@ -129,10 +175,11 @@ namespace GameLauncher
                     if (pname.Length == 0) // if game isnt already running
                         Process.Start(appData + @"\GameLauncher\TetrisGame\TetrisGame.exe");
                 }
-            }else if(selectedTab == 2)
+            }
+            else if (selectedTab == 2)
             {
 
-                if (downloadGameButton.Text == "Download")
+                if (downloadGameButton.Text == "Download" || downloadGameButton.Text == "Update")
                 {
                     using (WebClient wc = new WebClient())
                     {
@@ -141,6 +188,16 @@ namespace GameLauncher
                             downloadGameButton.Enabled = false;
                             string paintAppLink = "https://github.com/StrugglingDoge/PaintApp/releases/download/" + paintAppVersion + "/PaintApp.exe";
                             wc.DownloadFile(paintAppLink, appData + @"\GameLauncher\PaintApp\PaintApp.exe");
+
+                            if (!File.Exists(appData + @"\GameLauncher\PaintApp\version.txt"))
+                            {
+                                var file = File.Create(appData + @"\GameLauncher\PaintApp\version.txt");
+                                file.Close();
+                            }
+
+                            StreamWriter sw = new StreamWriter(appData + @"\GameLauncher\PaintApp\version.txt");
+                            sw.Write("" + paintAppVersion);
+                            sw.Close();
                             MessageBox.Show("Done.");
                             downloadGameButton.Text = "Play";
                             downloadGameButton.Left += 20;
@@ -163,7 +220,7 @@ namespace GameLauncher
             else if (selectedTab == 3)
             {
 
-                if (downloadGameButton.Text == "Download")
+                if (downloadGameButton.Text == "Download" || downloadGameButton.Text == "Update")
                 {
                     using (WebClient wc = new WebClient())
                     {
@@ -172,6 +229,15 @@ namespace GameLauncher
                             downloadGameButton.Enabled = false;
                             string paintAppLink = "https://github.com/StrugglingDoge/Snake-Game/releases/download/" + snakeGameVersion + "/Snake." + snakeGameVersion + ".exe";
                             wc.DownloadFile(paintAppLink, appData + @"\GameLauncher\SnakeGame\SnakeGame.exe");
+                            if (!File.Exists(appData + @"\GameLauncher\SnakeGame\version.txt"))
+                            {
+                                var file = File.Create(appData + @"\GameLauncher\SnakeGame\version.txt");
+                                file.Close();
+                            }
+
+                            StreamWriter sw = new StreamWriter(appData + @"\GameLauncher\SnakeGame\version.txt");
+                            sw.Write("" + snakeGameVersion);
+                            sw.Close();
                             MessageBox.Show("Done.");
                             downloadGameButton.Text = "Play";
                             downloadGameButton.Left += 20;
@@ -199,7 +265,7 @@ namespace GameLauncher
 
             updateLog.Text = "Update Logs(" + paintAppVersion + "):\r\n" + Encoding.UTF8.GetString(webc.DownloadData("https://raw.githubusercontent.com/StrugglingDoge/PaintApp/master/updatelogs")).Replace(@"\\n", "\r\n");
 
-            if (File.Exists(appData + @"\GameLauncher\PaintApp\PaintApp.exe"))
+            if (File.Exists(appData + @"\GameLauncher\PaintApp\PaintApp.exe") && !paintOutOfDate)
             {
                 if (downloadGameButton.Text != "Play")
                 {
@@ -211,7 +277,10 @@ namespace GameLauncher
             {
                 if (downloadGameButton.Text == "Play")
                     downloadGameButton.Left -= 20;
-                downloadGameButton.Text = "Download";
+                if (paintOutOfDate)
+                    downloadGameButton.Text = "Update";
+                else
+                    downloadGameButton.Text = "Download";
             }
 
             gameNameLabel.Text = "Paint App";
@@ -242,7 +311,7 @@ namespace GameLauncher
 
             updateLog.Text = "Update Logs(" + snakeGameVersion + "):\r\n" + Encoding.UTF8.GetString(webc.DownloadData("https://raw.githubusercontent.com/StrugglingDoge/Snake-Game/master/updatelogs")).Replace(@"\\n", "\r\n");
 
-            if (File.Exists(appData + @"\GameLauncher\SnakeGame\SnakeGame.exe"))
+            if (File.Exists(appData + @"\GameLauncher\SnakeGame\SnakeGame.exe") && !snakeOutOfDate)
             {
                 if (downloadGameButton.Text != "Play")
                 {
@@ -254,7 +323,10 @@ namespace GameLauncher
             {
                 if (downloadGameButton.Text == "Play")
                     downloadGameButton.Left -= 20;
-                downloadGameButton.Text = "Download";
+                if (snakeOutOfDate)
+                    downloadGameButton.Text = "Update";
+                else
+                    downloadGameButton.Text = "Download";
             }
 
             gameNameLabel.Text = "Snake Game";
